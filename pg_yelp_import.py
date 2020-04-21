@@ -17,9 +17,9 @@ def get_insert_query(schema, table, fields, values):
     return query
 
 
-def insert_record(db_connection, schema, table, fields, record_dict):
+def insert_record(db_connection, schema, table, record_dict):
     db_cursor = db_connection.cursor()
-    query = get_insert_query(schema, table, fields, (record_dict[f] for f in fields))
+    query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
     db_cursor.execute(query)
 
 
@@ -75,20 +75,6 @@ def insert_business(db_connection, record_dict):
         db_connection,
         'yelp_academic_dataset',
         'business',
-        [   'business_id',
-            'name',
-            'address',
-            'city',
-            'state',
-            'postal_code',
-            'categories',
-            'latitude',
-            'longitude',
-            'stars',
-            'review_count',
-            'is_open',
-            'attributes',
-            'hours' ],
         record_dict)
 
 
@@ -112,15 +98,6 @@ def insert_review(db_connection, record_dict):
         db_connection,
         'yelp_academic_dataset',
         'review',
-        [   'review_id',
-            'user_id',
-            'business_id',
-            'review_date',
-            'stars',
-            'useful_count',
-            'funny_count',
-            'cool_count',
-            'review_text' ],
         record_dict)
 
 
@@ -133,8 +110,6 @@ def insert_checkin(db_connection, record_dict):
             db_connection,
             'yelp_academic_dataset',
             'checkin',
-            [   'business_id',
-                'checkin_date' ],
             {   'business_id' : business,
                 'checkin_date' : checkin })
 
