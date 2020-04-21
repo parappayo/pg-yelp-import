@@ -1,3 +1,8 @@
+# Project Specific Ignore
+Dataset_User_Agreement.pdf
+yelp_dataset*
+yelp_academic_dataset*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
