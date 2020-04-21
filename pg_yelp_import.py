@@ -5,11 +5,13 @@ from psycopg2 import connect, sql, errors
 def get_insert_query(schema, table, fields, values):
     query = sql.SQL(
         "INSERT INTO {schema}.{table} ({fields}) VALUES ({values})")
+
     query = query.format(
         schema = sql.Identifier(schema),
         table = sql.Identifier(table),
         fields = sql.SQL(',').join(sql.Identifier(f) for f in fields),
         values = sql.SQL(',').join(sql.Literal(v) for v in values))
+
     # can debug the query by outputting it like so
     # print(query.as_string(db_cursor))
     return query
@@ -21,27 +23,38 @@ def insert_record(db_connection, schema, table, fields, record_dict):
     db_cursor.execute(query)
 
 
-def add_review(db_connection, review):
-    try:
-        insert_record(
-            db_connection,
-            'yelp_academic_dataset',
-            'review_import',
-            [   'review_id',
-                'user_id',
-                'business_id',
-                'review_date',
-                'stars',
-                'useful_count',
-                'funny_count',
-                'cool_count',
-                'review_text' ],
-            review)
-    except errors.UniqueViolation:
-        print('WARN: review already exists, id =', review['review_id'])
+def process_file(input_file, db_connection, parse_func, insert_func, log_func):
+    line_count = 0
+    for line in input_file:
+        try:
+            insert_func(db_connection, parse_func(line))
+        except errors.UniqueViolation:
+            continue
+
+        line_count += 1
+        if line_count % 10000 == 0:
+            db_connection.commit()
+            log_func(line_count)
 
 
-def parse_review_json(line):
+def insert_review(db_connection, review):
+    insert_record(
+        db_connection,
+        'yelp_academic_dataset',
+        'review_import',
+        [   'review_id',
+            'user_id',
+            'business_id',
+            'review_date',
+            'stars',
+            'useful_count',
+            'funny_count',
+            'cool_count',
+            'review_text' ],
+        review)
+
+
+def parse_review(line):
     doc = json.loads(line)
     return {
         'review_id' : doc['review_id'],
@@ -63,8 +76,12 @@ if __name__ == '__main__':
     with open('connection_string.txt', 'r') as infile:
         db_connection_string = infile.read()
 
-    with open(review_filename, 'r') as infile:
+    with open(review_filename, 'r', encoding='utf-8') as infile:
         with connect(db_connection_string) as db_connection:
-            for line in infile:
-                add_review(db_connection, parse_review_json(line))
-                db_connection.commit()
+            process_file(
+                infile,
+                db_connection,
+                parse_review,
+                insert_review,
+                lambda line_count:
+                    print("Inserted {:,d} reviews".format(line_count), flush=True))
