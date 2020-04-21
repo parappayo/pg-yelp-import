@@ -39,6 +39,18 @@ def process_file(input_file, db_connection, parse_func, insert_func, log_func):
     db_connection.commit()
 
 
+def process_job(input_filename, db_connection_string, parse_func, insert_func, log_format):
+    with open(input_filename, 'r', encoding='utf-8') as infile:
+        with connect(db_connection_string) as db_connection:
+            process_file(
+                infile,
+                db_connection,
+                parse_func,
+                insert_func,
+                lambda line_count:
+                    print(log_format.format(line_count), flush=True))
+
+
 def parse_business(line):
     doc = json.loads(line)
     return {
@@ -118,22 +130,19 @@ if __name__ == '__main__':
     with open('connection_string.txt', 'r') as infile:
         db_connection_string = infile.read()
 
-    with open('yelp_academic_dataset_business.json', 'r', encoding='utf-8') as infile:
-        with connect(db_connection_string) as db_connection:
-            process_file(
-                infile,
-                db_connection,
-                parse_business,
-                insert_business,
-                lambda line_count:
-                    print("inserted {:,d} businesses".format(line_count), flush=True))
+    jobs = [
+        (   'yelp_academic_dataset_business.json',
+            db_connection_string,
+            parse_business,
+            insert_business,
+            "inserted {:,d} businesses"),
 
-    with open('yelp_academic_dataset_review.json', 'r', encoding='utf-8') as infile:
-        with connect(db_connection_string) as db_connection:
-            process_file(
-                infile,
-                db_connection,
-                parse_review,
-                insert_review,
-                lambda line_count:
-                    print("inserted {:,d} reviews".format(line_count), flush=True))
+        (   'yelp_academic_dataset_review.json',
+            db_connection_string,
+            parse_review,
+            insert_review,
+            "inserted {:,d} reviews"),
+    ]
+
+    for job in jobs:
+        process_job(*job)
