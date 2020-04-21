@@ -36,8 +36,6 @@ def process_file(input_file, db_connection, parse_func, insert_func, log_func):
             db_connection.commit()
             log_func(line_count)
 
-    db_connection.commit()
-
 
 def process_job(input_filename, db_connection_string, parse_func, insert_func, log_format):
     with open(input_filename, 'r', encoding='utf-8') as infile:
@@ -49,6 +47,7 @@ def process_job(input_filename, db_connection_string, parse_func, insert_func, l
                 insert_func,
                 lambda line_count:
                     print(log_format.format(line_count), flush=True))
+            db_connection.commit()
 
 
 def parse_business(line):
@@ -125,6 +124,21 @@ def insert_review(db_connection, record_dict):
         record_dict)
 
 
+def insert_checkin(db_connection, record_dict):
+    business = record_dict['business_id']
+    checkins = record_dict['date'].split(',')
+
+    for checkin in checkins:
+        insert_record(
+            db_connection,
+            'yelp_academic_dataset',
+            'checkin',
+            [   'business_id',
+                'checkin_date' ],
+            {   'business_id' : business,
+                'checkin_date' : checkin })
+
+
 if __name__ == '__main__':
     db_connection_string = ''
     with open('connection_string.txt', 'r') as infile:
@@ -142,6 +156,12 @@ if __name__ == '__main__':
             parse_review,
             insert_review,
             "inserted {:,d} reviews"),
+
+        (   'yelp_academic_dataset_checkin.json',
+            db_connection_string,
+            lambda line: json.loads(line),
+            insert_checkin,
+            "processed check-ins for {:,d} businesses"),
     ]
 
     for job in jobs:

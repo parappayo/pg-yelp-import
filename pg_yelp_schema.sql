@@ -23,11 +23,17 @@ CREATE TABLE IF NOT EXISTS yelp_academic_dataset.review
 (
 	review_id		varchar(30) PRIMARY KEY,
 	user_id			varchar(30),
-	business_id		varchar(30),
+	business_id		varchar(30) REFERENCES yelp_academic_dataset.business,
 	review_date		timestamp,
 	stars			real,
 	useful_count	int,
 	funny_count		int,
 	cool_count		int,
 	review_text		text
+);
+
+CREATE TABLE IF NOT EXISTS yelp_academic_dataset.checkin
+(
+	business_id		varchar(30) REFERENCES yelp_academic_dataset.business,
+	checkin_date	timestamp
 );
