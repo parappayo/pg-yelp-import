@@ -22,6 +22,7 @@ The structure of the Yelp Dataset is likely to change over time and this project
 * Create the Postgres tables.
   * `psql -h localhost -p 5432 -U postgres -f pg_yelp_schema.sql.sql`
 * Set the database credentials.
+  * `echo "dbname='postgres' user='postgres' host='localhost' password='adminpass'" >connection_string.txt`
   * TODO: example of this
 * Run the import script.
   * `python3 pg_yelp_import.py`

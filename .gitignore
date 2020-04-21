@@ -1,4 +1,5 @@
 # Project Specific Ignore
+connection_string.txt
 Dataset_User_Agreement.pdf
 yelp_dataset*
 yelp_academic_dataset*

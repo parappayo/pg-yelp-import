@@ -2,10 +2,6 @@ import sys, json
 from psycopg2 import connect, sql
 
 
-# TODO: fetch db name, username, password from local secrets
-db_connection_string = "dbname='postgres' user='postgres' host='localhost' password='adminpass'"
-
-
 def add_review(db_connection, review):
     db_cursor = db_connection.cursor()
 
@@ -53,9 +49,13 @@ def parse_review_json(line):
 
 
 if __name__ == '__main__':
-    input_filename = 'yelp_academic_dataset_review.json'
+    db_connection_string = ''
+    review_filename = 'yelp_academic_dataset_review.json'
 
-    with open(input_filename, 'r') as infile:
+    with open('connection_string.txt', 'r') as infile:
+        db_connection_string = infile.read()
+
+    with open(review_filename, 'r') as infile:
         with connect(db_connection_string) as db_connection:
             for line in infile:
                 add_review(db_connection, parse_review_json(line))
