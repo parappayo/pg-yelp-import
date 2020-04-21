@@ -36,12 +36,71 @@ def process_file(input_file, db_connection, parse_func, insert_func, log_func):
             db_connection.commit()
             log_func(line_count)
 
+    db_connection.commit()
 
-def insert_review(db_connection, review):
+
+def parse_business(line):
+    doc = json.loads(line)
+    return {
+        'business_id'  : doc['business_id'],
+        'name'         : doc['name'],
+        'address'      : doc['address'],
+        'city'         : doc['city'],
+        'state'        : doc['state'],
+        'postal_code'  : doc['postal_code'],
+        'categories'   : doc['categories'],
+        'latitude'     : doc['latitude'],
+        'longitude'    : doc['longitude'],
+        'stars'        : doc['stars'],
+        'review_count' : doc['review_count'],
+        'is_open'      : doc['is_open'],
+        'attributes'   : json.dumps(doc['attributes']),
+        'hours'        : json.dumps(doc['hours'])
+    }
+
+
+def insert_business(db_connection, record_dict):
     insert_record(
         db_connection,
         'yelp_academic_dataset',
-        'review_import',
+        'business',
+        [   'business_id',
+            'name',
+            'address',
+            'city',
+            'state',
+            'postal_code',
+            'categories',
+            'latitude',
+            'longitude',
+            'stars',
+            'review_count',
+            'is_open',
+            'attributes',
+            'hours' ],
+        record_dict)
+
+
+def parse_review(line):
+    doc = json.loads(line)
+    return {
+        'review_id'    : doc['review_id'],
+        'user_id'      : doc['user_id'],
+        'business_id'  : doc['business_id'],
+        'review_date'  : doc['date'],
+        'stars'        : doc['stars'],
+        'useful_count' : doc['useful'],
+        'funny_count'  : doc['funny'],
+        'cool_count'   : doc['cool'],
+        'review_text'  : doc['text']
+    }
+
+
+def insert_review(db_connection, record_dict):
+    insert_record(
+        db_connection,
+        'yelp_academic_dataset',
+        'review',
         [   'review_id',
             'user_id',
             'business_id',
@@ -51,32 +110,25 @@ def insert_review(db_connection, review):
             'funny_count',
             'cool_count',
             'review_text' ],
-        review)
-
-
-def parse_review(line):
-    doc = json.loads(line)
-    return {
-        'review_id' : doc['review_id'],
-        'user_id' : doc['user_id'],
-        'business_id' : doc['business_id'],
-        'review_date' : doc['date'],
-        'stars' : doc['stars'],
-        'useful_count' : doc['useful'],
-        'funny_count' : doc['funny'],
-        'cool_count' : doc['cool'],
-        'review_text' : doc['text']
-    }
+        record_dict)
 
 
 if __name__ == '__main__':
     db_connection_string = ''
-    review_filename = 'yelp_academic_dataset_review.json'
-
     with open('connection_string.txt', 'r') as infile:
         db_connection_string = infile.read()
 
-    with open(review_filename, 'r', encoding='utf-8') as infile:
+    with open('yelp_academic_dataset_business.json', 'r', encoding='utf-8') as infile:
+        with connect(db_connection_string) as db_connection:
+            process_file(
+                infile,
+                db_connection,
+                parse_business,
+                insert_business,
+                lambda line_count:
+                    print("inserted {:,d} businesses".format(line_count), flush=True))
+
+    with open('yelp_academic_dataset_review.json', 'r', encoding='utf-8') as infile:
         with connect(db_connection_string) as db_connection:
             process_file(
                 infile,
@@ -84,4 +136,4 @@ if __name__ == '__main__':
                 parse_review,
                 insert_review,
                 lambda line_count:
-                    print("Inserted {:,d} reviews".format(line_count), flush=True))
+                    print("inserted {:,d} reviews".format(line_count), flush=True))

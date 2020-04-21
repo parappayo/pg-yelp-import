@@ -22,8 +22,29 @@ The structure of the Yelp Dataset is likely to change over time and this project
 * Install the required Python libs.
   * `pipenv install`
 * Create the Postgres tables.
-  * `psql -h localhost -p 5432 -U postgres -f pg_yelp_schema.sql.sql`
+  * `psql -h localhost -p 5432 -U postgres -f pg_yelp_schema.sql`
+  * Your connection details may vary.
 * Set the database credentials.
   * `echo "dbname='postgres' user='postgres' host='localhost' password='adminpass'" >connection_string.txt`
+  * Your connection details may vary.
+
+## Usage
+
+* Count up how many records need to be inserted in total.
+  * `wc -l *.json`
 * Run the import script.
   * `python3 pg_yelp_import.py`
+
+It will log every 10k inserts to give you a rough idea of progress.
+
+During development, I tested with Yelp Dataset that has over 11.6 million records.
+
+```
+$ wc -l *.json
+     209393 yelp_academic_dataset_business.json
+     175187 yelp_academic_dataset_checkin.json
+    8021122 yelp_academic_dataset_review.json
+    1320761 yelp_academic_dataset_tip.json
+    1968703 yelp_academic_dataset_user.json
+   11695166 total
+```
