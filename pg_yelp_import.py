@@ -1,24 +1,8 @@
 import sys, json
-from psycopg2 import connect, sql
+from psycopg2 import connect, sql, errors
 
 
-def add_review(db_connection, review):
-    db_cursor = db_connection.cursor()
-
-    schema = 'yelp_academic_dataset'
-    table = 'review_import'
-    fields = [
-        'review_id',
-        'user_id',
-        'business_id',
-        'review_date',
-        'stars',
-        'useful_count',
-        'funny_count',
-        'cool_count',
-        'review_text' ]
-    values = ( review[f] for f in fields )
-
+def get_insert_query(schema, table, fields, values):
     query = sql.SQL(
         "INSERT INTO {schema}.{table} ({fields}) VALUES ({values})")
     query = query.format(
@@ -26,11 +10,35 @@ def add_review(db_connection, review):
         table = sql.Identifier(table),
         fields = sql.SQL(',').join(sql.Identifier(f) for f in fields),
         values = sql.SQL(',').join(sql.Literal(v) for v in values))
-
     # can debug the query by outputting it like so
     # print(query.as_string(db_cursor))
+    return query
 
+
+def insert_record(db_connection, schema, table, fields, record_dict):
+    db_cursor = db_connection.cursor()
+    query = get_insert_query(schema, table, fields, (record_dict[f] for f in fields))
     db_cursor.execute(query)
+
+
+def add_review(db_connection, review):
+    try:
+        insert_record(
+            db_connection,
+            'yelp_academic_dataset',
+            'review_import',
+            [   'review_id',
+                'user_id',
+                'business_id',
+                'review_date',
+                'stars',
+                'useful_count',
+                'funny_count',
+                'cool_count',
+                'review_text' ],
+            review)
+    except errors.UniqueViolation:
+        print('WARN: review already exists, id =', review['review_id'])
 
 
 def parse_review_json(line):
