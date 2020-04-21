@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS yelp_academic_dataset;
 
 CREATE TABLE IF NOT EXISTS yelp_academic_dataset.business
 (
-	business_id		varchar(30) PRIMARY KEY,
+	business_id		uuid PRIMARY KEY,
 	name			text,
 	address			text,
 	city			text,
@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS yelp_academic_dataset.business
 
 CREATE TABLE IF NOT EXISTS yelp_academic_dataset.review
 (
-	review_id		varchar(30) PRIMARY KEY,
-	user_id			varchar(30),
-	business_id		varchar(30) REFERENCES yelp_academic_dataset.business,
+	review_id		uuid PRIMARY KEY,
+	user_id			uuid,
+	business_id		uuid REFERENCES yelp_academic_dataset.business,
 	review_date		timestamp,
 	stars			real,
 	useful_count	int,
@@ -34,6 +34,6 @@ CREATE TABLE IF NOT EXISTS yelp_academic_dataset.review
 
 CREATE TABLE IF NOT EXISTS yelp_academic_dataset.checkin
 (
-	business_id		varchar(30) REFERENCES yelp_academic_dataset.business,
+	business_id		uuid REFERENCES yelp_academic_dataset.business,
 	checkin_date	timestamp
 );

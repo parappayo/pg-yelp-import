@@ -1,5 +1,9 @@
-import sys, json
+import sys, json, base64
 from psycopg2 import connect, sql, errors
+
+
+def decode_id(id):
+    return base64.b64decode(id + '==', '-_').hex()
 
 
 def get_insert_query(schema, table, fields, values):
@@ -53,7 +57,7 @@ def process_job(input_filename, db_connection_string, parse_func, insert_func, l
 def parse_business(line):
     doc = json.loads(line)
     return {
-        'business_id'  : doc['business_id'],
+        'business_id'  : decode_id(doc['business_id']),
         'name'         : doc['name'],
         'address'      : doc['address'],
         'city'         : doc['city'],
@@ -81,9 +85,9 @@ def insert_business(db_connection, record_dict):
 def parse_review(line):
     doc = json.loads(line)
     return {
-        'review_id'    : doc['review_id'],
-        'user_id'      : doc['user_id'],
-        'business_id'  : doc['business_id'],
+        'review_id'    : decode_id(doc['review_id']),
+        'user_id'      : decode_id(doc['user_id']),
+        'business_id'  : decode_id(doc['business_id']),
         'review_date'  : doc['date'],
         'stars'        : doc['stars'],
         'useful_count' : doc['useful'],
@@ -102,7 +106,7 @@ def insert_review(db_connection, record_dict):
 
 
 def insert_checkin(db_connection, record_dict):
-    business = record_dict['business_id']
+    business = decode_id(record_dict['business_id'])
     checkins = record_dict['date'].split(',')
 
     for checkin in checkins:
