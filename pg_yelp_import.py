@@ -54,6 +54,41 @@ def process_job(input_filename, db_connection_string, parse_func, insert_func, l
             db_connection.commit()
 
 
+def parse_user(line):
+    doc = json.loads(line)
+    return {
+        'user_id' : decode_id(doc['user_id']),
+        'name' : doc['name'],
+        'review_count' : doc['review_count'],
+        'yelping_since' : doc['yelping_since'],
+        'useful_count' : doc['useful'],
+        'funny_count' : doc['funny'],
+        'cool_count' : doc['cool'],
+        'elite_years' : doc['elite'],
+        'fans_count' : doc['fans'],
+        'average_stars' : doc['average_stars'],
+        'compliment_hot_count' : doc['compliment_hot'],
+        'compliment_more_count' : doc['compliment_more'],
+        'compliment_profile_count' : doc['compliment_profile'],
+        'compliment_cute_count' : doc['compliment_cute'],
+        'compliment_list_count' : doc['compliment_list'],
+        'compliment_note_count' : doc['compliment_note'],
+        'compliment_plain_count' : doc['compliment_plain'],
+        'compliment_cool_count' : doc['compliment_cool'],
+        'compliment_funny_count' : doc['compliment_funny'],
+        'compliment_writer_count' : doc['compliment_writer'],
+        'compliment_photos_count' : doc['compliment_photos'],
+    }
+
+
+def insert_user(db_connection, record_dict):
+    insert_record(
+        db_connection,
+        'yelp_academic_dataset',
+        'user',
+        record_dict)
+
+
 def parse_business(line):
     doc = json.loads(line)
     return {
@@ -124,6 +159,18 @@ if __name__ == '__main__':
         db_connection_string = infile.read()
 
     jobs = [
+        (   'yelp_academic_dataset_user.json',
+            db_connection_string,
+            parse_user,
+            insert_user,
+            "inserted {:,d} users"),
+
+        # (   'yelp_academic_dataset_user.json',
+        #     db_connection_string,
+        #     parse_friends,
+        #     insert_friends,
+        #     "processed friends for {:,d} users"),
+
         (   'yelp_academic_dataset_business.json',
             db_connection_string,
             parse_business,
