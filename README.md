@@ -49,6 +49,16 @@ $ wc -l *.json
    11695166 total
 ```
 
+## What I Learned
+
+* Postgres has a nice On Conflict Clause feature to implement upserts.
+  * `INSERT ... ON CONFLICT DO UPDATE`
+* Catching a `UniqueViolation` exception is not enough when doing multiple inserts per transaction.
+  * The next insert after a uniqueness constraint violation will throw `InFailedSqlTransaction`.
+  * Work-around: `INSERT ... ON CONFLICT DO NOTHING`
+* There is a quick and dirty conversion from 22 character Base64 strings to UUIDs.
+  * `base64.b64decode(id + '==', '-_').hex()`
+
 ## Demos
 
 ### Top 10 Most Popular User Names
