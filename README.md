@@ -64,6 +64,10 @@ It may be useful to run partial import jobs by customizing the set of steps unde
   * Work-around: `INSERT ... ON CONFLICT DO NOTHING`
 * There is a quick and dirty conversion from 22 character Base64 strings to UUIDs.
   * `base64.b64decode(id + '==', '-_').hex()`
+* My SQL could be better. Some fun SQL features to play with include,
+  * [Upserts](https://www.postgresqltutorial.com/postgresql-upsert/)
+  * [Common Table Expressions](https://www.postgresql.org/docs/11/queries-with.html)
+  * [Materialized Views](https://www.postgresql.org/docs/11/rules-materializedviews.html)
 
 ## Demos
 
@@ -219,4 +223,20 @@ limit 10;
 "Montréal"	"QC"	"6979"
 "Mesa"	"AZ"	"6577"
 "Henderson"	"NV"	"5272"
+```
+
+A closer look at the city data shows that the city name field is full of errors (punctuation, partial addresses, whitespace), but we can still estimate the latitude and longitude of major urban centers.
+
+```
+select trim(lower(city)) as city
+,state
+,round(avg(latitude)::numeric, 3) as latitude
+,round(avg(longitude)::numeric, 3) as longitude
+,count(*) as business_count
+,sum(review_count) as review_count
+from yelp_academic_dataset.business
+where city is not null
+  and city != ''
+group by city, state
+order by city asc;
 ```
