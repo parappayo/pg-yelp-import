@@ -8,8 +8,8 @@ def decode_id(id):
     return base64.b64decode(id + '==', '-_').hex()
 
 
-def parse_user(line):
-    doc = json.loads(line)
+def parse_user(json_str):
+    doc = json.loads(json_str)
     return {
         'user_id' : decode_id(doc['user_id']),
         'name' : doc['name'],
@@ -35,8 +35,8 @@ def parse_user(line):
     }
 
 
-def parse_business(line):
-    doc = json.loads(line)
+def parse_business(json_str):
+    doc = json.loads(json_str)
     return {
         'business_id'  : decode_id(doc['business_id']),
         'name'         : doc['name'],
@@ -55,8 +55,8 @@ def parse_business(line):
     }
 
 
-def parse_review(line):
-    doc = json.loads(line)
+def parse_review(json_str):
+    doc = json.loads(json_str)
     return {
         'review_id'    : decode_id(doc['review_id']),
         'user_id'      : decode_id(doc['user_id']),
@@ -70,24 +70,24 @@ def parse_review(line):
     }
 
 
-def parse_friends(line):
-    doc = json.loads(line)
+def parse_friends(json_str):
+    doc = json.loads(json_str)
     return {
         'user_id' : decode_id(doc['user_id']),
         'friends' : [decode_id(friend_id) for friend_id in doc['friends'].split(',')]
     }
 
 
-def parse_checkin(line):
-    doc = json.loads(line)
+def parse_checkin(json_str):
+    doc = json.loads(json_str)
     return {
         'business_id' : decode_id(doc['business_id']),
         'checkins'    : doc['date'].split(',')
     }
 
 
-def parse_tip(line):
-    doc = json.loads(line)
+def parse_tip(json_str):
+    doc = json.loads(json_str)
     return {
         'user_id'          : decode_id(doc['user_id']),
         'business_id'      : decode_id(doc['business_id']),
