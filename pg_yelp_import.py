@@ -34,6 +34,10 @@ def process_file(input_file, db_connection, parse_func, insert_func, log_func):
             try:
                 insert_func(db_cursor, parse_func(line))
             except errors.UniqueViolation:
+                db_connection.commit()
+                continue
+            except errors.ForeignKeyViolation:
+                db_connection.commit()
                 continue
 
             line_count += 1
@@ -96,10 +100,10 @@ if __name__ == '__main__':
             get_insert_func('review'),
             "inserted {:,d} reviews"),
 
-        (   'yelp_academic_dataset_user.json',
-            parse_friends,
-            insert_friends,
-            "processed friends for {:,d} users"),
+        # (   'yelp_academic_dataset_user.json',
+        #     parse_friends,
+        #     insert_friends,
+        #     "processed friends for {:,d} users"),
 
         (   'yelp_academic_dataset_checkin.json',
             parse_checkin,
