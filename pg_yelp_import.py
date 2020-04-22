@@ -18,28 +18,29 @@ def get_insert_query(schema, table, fields, values):
     return query
 
 
-def insert_record(db_connection, schema, table, record_dict):
+def insert_record(db_cursor, schema, table, record_dict):
     query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
     db_cursor.execute(query)
 
 
 def get_insert_func(table):
-    return lambda db_connection, record_dict: insert_record(db_connection, 'yelp_academic_dataset', table, record_dict)
+    return lambda db_cursor, record_dict: insert_record(db_cursor, 'yelp_academic_dataset', table, record_dict)
 
 
 def process_file(input_file, db_connection, parse_func, insert_func, log_func):
-    line_count = 0
-    for line in input_file:
-        try:
-            insert_func(db_connection, parse_func(line))
-        except errors.UniqueViolation:
-            continue
+    with db_connection.cursor() as db_cursor:
+        line_count = 0
+        for line in input_file:
+            try:
+                insert_func(db_cursor, parse_func(line))
+            except errors.UniqueViolation:
+                continue
 
-        line_count += 1
-        if line_count % 10000 == 0:
-            db_connection.commit()
-            log_func(line_count)
-    log_func(line_count)
+            line_count += 1
+            if line_count % 10000 == 0:
+                db_connection.commit()
+                log_func(line_count)
+        log_func(line_count)
 
 
 def process_job(db_connection, input_filename, parse_func, insert_func, log_format):
@@ -103,11 +104,6 @@ if __name__ == '__main__':
     with open('connection_string.txt', 'r') as infile:
         db_connection_string = infile.read()
 
-    db_connection = connect(db_connection_string)
-    db_cursor = db_connection.cursor()
-    try:
+    with connect(db_connection_string) as db_connection:
         for job in jobs:
             process_job(db_connection, *job)
-    finally:
-        db_cursor.close()
-        db_connection.close()

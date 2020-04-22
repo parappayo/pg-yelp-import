@@ -1,8 +1,6 @@
 #
 #  Methods that convert Yelp Dataset json docs into Postgres schema friendly dictionaries
 #
-
-
 import json, base64
 
 
