@@ -5,7 +5,7 @@ from pg_yelp_parse import *
 
 def get_insert_query(schema, table, fields, values):
     query = sql.SQL(
-        "INSERT INTO {schema}.{table} ({fields}) VALUES ({values})")
+        "INSERT INTO {schema}.{table} ({fields}) VALUES ({values}) ON CONFLICT DO NOTHING")
 
     query = query.format(
         schema = sql.Identifier(schema),
@@ -19,10 +19,8 @@ def get_insert_query(schema, table, fields, values):
 
 
 def insert_record(db_connection, schema, table, record_dict):
-    with db_connection:
-        with db_connection.cursor() as db_cursor:
-            query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
-            db_cursor.execute(query)
+    query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
+    db_cursor.execute(query)
 
 
 def process_file(input_file, db_connection, parse_func, insert_func, log_func):
