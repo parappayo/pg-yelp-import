@@ -70,12 +70,20 @@ def parse_review(line):
     }
 
 
+def parse_friends(line):
+    doc = json.loads(line)
+    return {
+        'user_id' : decode_id(doc['user_id']),
+        'friends' : [decode_id(friend_id) for friend_id in doc['friends'].split(',')]
+    }
+
+
 def parse_checkin(line):
-	doc = json.loads(line)
-	return {
-		'business_id' : decode_id(doc['business_id']),
-		'checkins'    : doc['date'].split(',')
-	}
+    doc = json.loads(line)
+    return {
+        'business_id' : decode_id(doc['business_id']),
+        'checkins'    : doc['date'].split(',')
+    }
 
 
 def parse_tip(line):

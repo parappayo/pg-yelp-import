@@ -55,15 +55,27 @@ def process_job(db_connection, input_filename, parse_func, insert_func, log_form
                     print(log_format.format(line_count), flush=True))
 
 
+def insert_friends(db_connection, record_dict):
+    for friend_id in record_dict['friends']:
+        insert_record(
+            db_connection,
+            'yelp_academic_dataset',
+            'friends',
+            {
+                'user_id' : record_dict['user_id'],
+                'friend_id' : friend_id
+            })
+
+
 def insert_checkin(db_connection, record_dict):
-    for checkin in record_dict['checkins']:
+    for checkin_date in record_dict['checkins']:
         insert_record(
             db_connection,
             'yelp_academic_dataset',
             'checkin',
             {
                 'business_id' : record_dict['business_id'],
-                'checkin_date' : checkin
+                'checkin_date' : checkin_date
             })
 
 
@@ -74,11 +86,6 @@ if __name__ == '__main__':
             get_insert_func('user'),
             "inserted {:,d} users"),
 
-        # (   'yelp_academic_dataset_user.json',
-        #     parse_friends,
-        #     insert_friends,
-        #     "processed friends for {:,d} users"),
-
         (   'yelp_academic_dataset_business.json',
             parse_business,
             get_insert_func('business'),
@@ -88,6 +95,11 @@ if __name__ == '__main__':
             parse_review,
             get_insert_func('review'),
             "inserted {:,d} reviews"),
+
+        (   'yelp_academic_dataset_user.json',
+            parse_friends,
+            insert_friends,
+            "processed friends for {:,d} users"),
 
         (   'yelp_academic_dataset_checkin.json',
             parse_checkin,
