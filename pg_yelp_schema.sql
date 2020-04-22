@@ -68,3 +68,12 @@ CREATE TABLE IF NOT EXISTS yelp_academic_dataset.checkin
 	business_id		uuid REFERENCES yelp_academic_dataset.business,
 	checkin_date	timestamp
 );
+
+CREATE TABLE IF NOT EXISTS yelp_academic_dataset.tip
+(
+	user_id				uuid REFERENCES yelp_academic_dataset.user,
+	business_id			uuid REFERENCES yelp_academic_dataset.business,
+	tip_text			text,
+	tip_date			timestamp,
+	compliment_count	int
+);

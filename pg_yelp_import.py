@@ -154,6 +154,24 @@ def insert_checkin(db_connection, record_dict):
                 'checkin_date' : checkin })
 
 
+def parse_tip(line):
+    doc = json.loads(line)
+    return {
+        'user_id'          : decode_id(doc['user_id']),
+        'business_id'      : decode_id(doc['business_id']),
+        'tip_date'         : doc['date'],
+        'compliment_count' : doc['compliment_count']
+    }
+
+
+def insert_tip(db_connection, record_dict):
+    insert_record(
+        db_connection,
+        'yelp_academic_dataset',
+        'tip',
+        record_dict)
+
+
 if __name__ == '__main__':
     jobs = [
         (   'yelp_academic_dataset_user.json',
@@ -180,6 +198,11 @@ if __name__ == '__main__':
             lambda line: json.loads(line),
             insert_checkin,
             "processed check-ins for {:,d} businesses"),
+
+        (   'yelp_academic_dataset_tip.json',
+            parse_tip,
+            insert_tip,
+            "inserted {:,d} tips"),
     ]
 
     db_connection_string = ''
