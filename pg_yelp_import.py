@@ -22,9 +22,10 @@ def get_insert_query(schema, table, fields, values):
 
 
 def insert_record(db_connection, schema, table, record_dict):
-    db_cursor = db_connection.cursor()
-    query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
-    db_cursor.execute(query)
+    with db_connection:
+        with db_connection.cursor() as db_cursor:
+            query = get_insert_query(schema, table, record_dict.keys(), record_dict.values())
+            db_cursor.execute(query)
 
 
 def process_file(input_file, db_connection, parse_func, insert_func, log_func):
@@ -39,11 +40,12 @@ def process_file(input_file, db_connection, parse_func, insert_func, log_func):
         if line_count % 10000 == 0:
             db_connection.commit()
             log_func(line_count)
+    log_func(line_count)
 
 
-def process_job(input_filename, db_connection_string, parse_func, insert_func, log_format):
+def process_job(db_connection, input_filename, parse_func, insert_func, log_format):
     with open(input_filename, 'r', encoding='utf-8') as infile:
-        with connect(db_connection_string) as db_connection:
+        with db_connection:
             process_file(
                 infile,
                 db_connection,
@@ -51,7 +53,6 @@ def process_job(input_filename, db_connection_string, parse_func, insert_func, l
                 insert_func,
                 lambda line_count:
                     print(log_format.format(line_count), flush=True))
-            db_connection.commit()
 
 
 def parse_user(line):
@@ -154,41 +155,42 @@ def insert_checkin(db_connection, record_dict):
 
 
 if __name__ == '__main__':
-    db_connection_string = ''
-    with open('connection_string.txt', 'r') as infile:
-        db_connection_string = infile.read()
-
     jobs = [
         (   'yelp_academic_dataset_user.json',
-            db_connection_string,
             parse_user,
             insert_user,
             "inserted {:,d} users"),
 
         # (   'yelp_academic_dataset_user.json',
-        #     db_connection_string,
         #     parse_friends,
         #     insert_friends,
         #     "processed friends for {:,d} users"),
 
         (   'yelp_academic_dataset_business.json',
-            db_connection_string,
             parse_business,
             insert_business,
             "inserted {:,d} businesses"),
 
         (   'yelp_academic_dataset_review.json',
-            db_connection_string,
             parse_review,
             insert_review,
             "inserted {:,d} reviews"),
 
         (   'yelp_academic_dataset_checkin.json',
-            db_connection_string,
             lambda line: json.loads(line),
             insert_checkin,
             "processed check-ins for {:,d} businesses"),
     ]
 
-    for job in jobs:
-        process_job(*job)
+    db_connection_string = ''
+    with open('connection_string.txt', 'r') as infile:
+        db_connection_string = infile.read()
+
+    db_connection = connect(db_connection_string)
+    db_cursor = db_connection.cursor()
+    try:
+        for job in jobs:
+            process_job(db_connection, *job)
+    finally:
+        db_cursor.close()
+        db_connection.close()

@@ -48,3 +48,28 @@ $ wc -l *.json
     1968703 yelp_academic_dataset_user.json
    11695166 total
 ```
+
+## Demos
+
+### Top 10 Most Popular User Names
+
+```
+select name, count(*)
+from yelp_academic_dataset.user
+group by name
+order by count(*) desc
+limit 10;
+```
+
+```
+"John"     "16931"
+"Michael"  "16103"
+"David"    "15977"
+"Chris"    "14389"
+"Mike"     "13299"
+"Jennifer" "12338"
+"Jessica"  "11205"
+"Sarah"    "10390"
+"Michelle" "10317"
+"Lisa"     "9632"
+```
