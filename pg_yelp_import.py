@@ -23,6 +23,10 @@ def insert_record(db_connection, schema, table, record_dict):
     db_cursor.execute(query)
 
 
+def get_insert_func(table):
+    return lambda db_connection, record_dict: insert_record(db_connection, 'yelp_academic_dataset', table, record_dict)
+
+
 def process_file(input_file, db_connection, parse_func, insert_func, log_func):
     line_count = 0
     for line in input_file:
@@ -50,30 +54,6 @@ def process_job(db_connection, input_filename, parse_func, insert_func, log_form
                     print(log_format.format(line_count), flush=True))
 
 
-def insert_user(db_connection, record_dict):
-    insert_record(
-        db_connection,
-        'yelp_academic_dataset',
-        'user',
-        record_dict)
-
-
-def insert_business(db_connection, record_dict):
-    insert_record(
-        db_connection,
-        'yelp_academic_dataset',
-        'business',
-        record_dict)
-
-
-def insert_review(db_connection, record_dict):
-    insert_record(
-        db_connection,
-        'yelp_academic_dataset',
-        'review',
-        record_dict)
-
-
 def insert_checkin(db_connection, record_dict):
     for checkin in record_dict['checkins']:
         insert_record(
@@ -86,19 +66,11 @@ def insert_checkin(db_connection, record_dict):
             })
 
 
-def insert_tip(db_connection, record_dict):
-    insert_record(
-        db_connection,
-        'yelp_academic_dataset',
-        'tip',
-        record_dict)
-
-
 if __name__ == '__main__':
     jobs = [
         (   'yelp_academic_dataset_user.json',
             parse_user,
-            insert_user,
+            get_insert_func('user'),
             "inserted {:,d} users"),
 
         # (   'yelp_academic_dataset_user.json',
@@ -108,12 +80,12 @@ if __name__ == '__main__':
 
         (   'yelp_academic_dataset_business.json',
             parse_business,
-            insert_business,
+            get_insert_func('business'),
             "inserted {:,d} businesses"),
 
         (   'yelp_academic_dataset_review.json',
             parse_review,
-            insert_review,
+            get_insert_func('review'),
             "inserted {:,d} reviews"),
 
         (   'yelp_academic_dataset_checkin.json',
@@ -123,7 +95,7 @@ if __name__ == '__main__':
 
         (   'yelp_academic_dataset_tip.json',
             parse_tip,
-            insert_tip,
+            get_insert_func('tip'),
             "inserted {:,d} tips"),
     ]
 
